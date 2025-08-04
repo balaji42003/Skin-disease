@@ -22,10 +22,10 @@ class_names  =["Cellulitis", "Impetigo", "Athelete-Foot", "Nail-Fungus", "Ringwo
 #Preparing the image before feeding it to the model
 def preprocess_image(img, target_size):
     img = img.resize(target_size)
-    im = img_to_array(img)
-    img = np.expand_dims(img, axis =0)
-    img = img / 255.0
-    return img
+    img_array = img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = img_array / 255.0
+    return img_array
 
 
 #Defining the routes
