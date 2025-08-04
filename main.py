@@ -11,7 +11,21 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React Native frontend
-model = load_model("skin_disease_model.h5")
+
+# Global variable to store the model (lazy loading)
+model = None
+
+def load_model_lazy():
+    """Load the model only when needed"""
+    global model
+    if model is None:
+        try:
+            model = load_model("skin_disease_model.h5")
+            print("Model loaded successfully!")
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            raise e
+    return model
 
 
 #Defining the classes
@@ -36,14 +50,16 @@ def home():
         "status": "Active",
         "message": "API is running - use /predict endpoint for predictions",
         "endpoints": {
-            "/predict": "POST - Image prediction",
-            "/status": "GET - API status"
+            "/predict": "POST - Image prediction"
         }
     })
 
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        # Load model only when needed
+        current_model = load_model_lazy()
+        
         if 'file' not in request.files:
             return jsonify({
                 "success": False,
@@ -64,7 +80,7 @@ def predict():
             # Process the image
             image = Image.open(file.stream)
             processed_image = preprocess_image(image, target_size=(150,150))
-            prediction = model.predict(processed_image)
+            prediction = current_model.predict(processed_image)
             predicted_class = class_names[np.argmax(prediction)]
             confidence = float(np.max(prediction))
 
@@ -84,28 +100,8 @@ def predict():
         return jsonify({
             "success": False,
             "error": str(e),
-            "message": "An error occurred while processing the image"
+            "message": "An error occurred while processing the image. Make sure the model file exists."
         }), 500
-
-@app.route("/status", methods=["GET"])
-def status():
-    return jsonify({
-        "service": "Skin Disease Prediction API",
-        "status": "Active",
-        "supported_diseases": class_names,
-        "endpoints": {
-            "/": "GET - API info",
-            "/predict": "POST - Image prediction for mobile apps",
-            "/status": "GET - API status"
-        },
-        "usage": {
-            "method": "POST",
-            "endpoint": "/predict",
-            "content_type": "multipart/form-data",
-            "field_name": "file",
-            "supported_formats": ["jpg", "jpeg", "png"]
-        }
-    })
     
 
 if __name__ == "__main__":
