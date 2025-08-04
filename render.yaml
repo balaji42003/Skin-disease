@@ -9,4 +9,3 @@ services:
         value: "3.11.0"
       - key: TF_ENABLE_ONEDNN_OPTS
         value: "0"
-        value: "0"
