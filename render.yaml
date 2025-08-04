@@ -6,6 +6,7 @@ services:
     startCommand: gunicorn --bind 0.0.0.0:$PORT main:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.10.0
+        value: "3.11.0"
       - key: TF_ENABLE_ONEDNN_OPTS
+        value: "0"
         value: "0"
